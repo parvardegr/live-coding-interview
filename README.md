@@ -17,7 +17,7 @@ It also produces messages automatically after start.
 - **Configuration**: A Kafka topic has been declared as spring bean in the `InterviewApplication` using `NewTopic` class. Using the command below we can identify the topic configuration:
   ```shell
   docker exec -it kafka /bin/bash
-  kafka-topics.sh --describe --topic interview --bootstrap-server localhost:9092
+  kafka-topics --describe --topic interview --bootstrap-server localhost:9092
   ```
 - **Topic Name**: `interview`
 - **Configuration**:
