@@ -1,10 +1,8 @@
-version: '3.2'
-
 services:
   # https://github.com/wurstmeister/zookeeper-docker
   zookeeper:
     container_name: zookeeper
-    image: wurstmeister/zookeeper:latest
+    image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
@@ -13,7 +11,7 @@ services:
   # https://hub.docker.com/r/confluentinc/cp-kafka/
   kafka:
     container_name: kafka
-    image: wurstmeister/kafka:2.12-2.2.1
+    image: confluentinc/cp-kafka:latest
     environment:
       ## the >- used below infers a value which is a string and properly
       ## ignore the multiple lines resulting in one long string:
