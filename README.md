@@ -51,7 +51,7 @@ It also produces messages automatically after start.
 - **Method**:
     - `consume(message)`: Listens to the Kafka topic `${topic.name}` and passes incoming messages to `MessageProcessorService`.
 ---
-# Performance Tuning
+# Performance Tuning Options
 1. **batch.size**: 
    - Larger `batch.size` improve throughput but increases latency because it waits longer to fill the batch. (less resource consumption)
    - Shorter `batch.size` reduce waiting time and latency but increase the number of requests and throughput. (more resource consumption)
@@ -80,3 +80,7 @@ It also produces messages automatically after start.
    - **Service Logic**: Optimising `processMessage(message)` method can reduce processing time per message.
    - **Concurrent Listener**: Increasing concurrency can reduce latency by allowing multiple messages to be processed in parallel.
    - **JVM Heap Size**: By increasing heap size, we will be able to handle more data in memory. (large heap size = longer GC interval) 
+---
+# Benchmarking
+1. **Initial State**: It took ~58000ms to process 5000 messages with total of 10ms delay on `SmsService` and `UserService`.
+2. **Tuned State**: It took ~29000ms to process 5000 messages with total of 10ms delay on `SmsService` and `UserService`.
