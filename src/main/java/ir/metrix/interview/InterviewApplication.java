@@ -1,6 +1,9 @@
 package ir.metrix.interview;
 
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
@@ -24,10 +27,14 @@ public class InterviewApplication {
 	@Value("${message.count}")
 	private int messageCount;
 
+	@Value("${partition.count}")
+	private int partitionCount;
+
 	@Bean
-	public NewTopic topic() { //TODO: Adjust topic configuration like partition and replica
+	public NewTopic topic() {
 		return TopicBuilder
 				.name(topicName)
+				.partitions(partitionCount)
 				.build();
 	}
 
@@ -35,8 +42,16 @@ public class InterviewApplication {
 	public ApplicationRunner runner(KafkaTemplate<String, Message> template) {
 		return args -> {
 			int count = messageCount;
-			for (int i = 0; i < count; i++)  //we have only 2 users
-				template.send(topicName, new Message("user"+(i%2), "just a message!"));
+			for (int i = 0; i < count; i++) { //we have only 2 users
+				String key = "user" + (i % 2);
+
+				// Calculate hash of the key to determine the partition
+				int partition = Math.abs(key.hashCode()) % partitionCount;
+
+				Message message = new Message(key, "just a message!");
+				ProducerRecord<String, Message> record = new ProducerRecord<>(topicName, partition, key, message);
+				template.send(record);
+			}
 		};
 	}
 
