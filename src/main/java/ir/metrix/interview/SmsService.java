@@ -1,5 +1,6 @@
 package ir.metrix.interview;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -7,9 +8,12 @@ import java.util.List;
 @Service
 public class SmsService {
 
+    @Value("${operation.delay}")
+    private int operationDelay;
+
     public void sendMessage(String phoneNumber, Message message) {
         try {
-            Thread.sleep(1000);  //1s
+            Thread.sleep(operationDelay);  //1s
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
