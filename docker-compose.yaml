@@ -13,15 +13,15 @@ services:
     container_name: kafka
     image: confluentinc/cp-kafka:latest
     environment:
+      ## -XX:+UseG1GC: G1GC divides application memory into chunks and collect garbage incrementally. (minimise GC pause time, maximise throughput)
+      ## -Xmx2G: maximum amount of memory that the JVM is allowed to allocate for the heap. (for storing objects; adjust with available resource)
+      ## -Xms2G: initial heap size, recommended to be equal to `-Xmx` to avoid dynamic resizing in runtime.
+        ## by setting init != max, JVM spend more time on managing the memory instead of executing app logic. (adjust with available resource)
+      ## -XX:MaxGCPauseMillis=20: each GC pause does not exceed this duration. (can help reduce latency; but increase CPU usage)
       KAFKA_JVM_PERFORMANCE_OPTS: >-
-        # G1GC divides application memory into chunks and collect garbage incrementally. (minimise GC pause time, maximise throughput)
         -XX:+UseG1GC
-        # maximum amount of memory that the JVM is allowed to allocate for the heap. (for storing objects; adjust with available resource)
         -Xmx2G
-        # initial heap size, recommended to be equal to `-Xmx` to avoid dynamic resizing in runtime.
-        # by setting init != max, JVM spend more time on managing the memory instead of executing app logic. (adjust with available resource)
         -Xms2G 
-        # each GC pause does not exceed this duration. (can help reduce latency; but increase CPU usage)
         -XX:MaxGCPauseMillis=20
       KAFKA_BROKER_ID: 1
       ## the >- used below infers a value which is a string and properly
