@@ -45,4 +45,21 @@ public class MessageProcessorService {
         }
     }
 
+    public void processMessages(List<Message> messages) {
+        String phoneNumber = userService.fetchPhoneById(messages.get(0).getUserId());
+        smsService.sendMessages(phoneNumber, messages);
+
+        synchronized (lock) {
+            if (processedCount.get() == 0) {
+                startTime.set(System.currentTimeMillis());
+                LOG.info("Start Processing...");
+            }
+
+            if (processedCount.addAndGet(messages.size()) >= messageCount) {
+                long elapsedTime = System.currentTimeMillis() - startTime.get();
+                LOG.info("Finish Processing Messages. count={}, elapsedTime={} ms", processedCount.get(), elapsedTime);
+            }
+        }
+    }
+
 }

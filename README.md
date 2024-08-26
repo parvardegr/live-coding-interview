@@ -86,3 +86,6 @@ It also produces messages automatically after start.
     - `log`: Finish Processing Messages. count=5000, elapsedTime=54908 ms.
 2. **Tuned State**: It took ~29000ms to process 5000 messages with total of 10ms delay on `SmsService` and `UserService`.
     - `log`: Finish Processing Messages. count=5000, elapsedTime=28176 ms.
+3. **Tuned + Batch State**: It took ~200ms to process 5000 messages with total of 25ms delay per 468 messages on `SmsService` and `UserService`.
+    - `log`: Finish Processing Messages. count=5000, elapsedTime=208 ms. 
+    - `note`: After Using batch processing on the business logic(`sendMessages` instead of `sendMessage`) and enabling batch consumption, throughput has been improved significantly.
