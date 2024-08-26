@@ -26,15 +26,17 @@ public class InterviewApplication {
 	private String topicName;
 	@Value("${message.count}")
 	private int messageCount;
-
 	@Value("${partition.count}")
 	private int partitionCount;
+	@Value("${replica.factor}")
+	private int replicaFactor;
 
 	@Bean
 	public NewTopic topic() {
 		return TopicBuilder
 				.name(topicName)
 				.partitions(partitionCount)
+				.replicas(replicaFactor)
 				.build();
 	}
 

@@ -89,3 +89,10 @@ It also produces messages automatically after start.
 3. **Tuned + Batch State**: It took ~200ms to process 5000 messages with total of 25ms delay per 468 messages on `SmsService` and `UserService`.
     - `log`: Finish Processing Messages. count=5000, elapsedTime=208 ms. 
     - `note`: After Using batch processing on the business logic(`sendMessages` instead of `sendMessage`) and enabling batch consumption, throughput has been improved significantly.
+---
+# Replication Factor
+```text
+Topic: interview        TopicId: XIjQMIQLTYaiFZzjJ9549w PartitionCount: 2       ReplicationFactor: 2    Configs: 
+        Topic: interview        Partition: 0    Leader: 1       Replicas: 1,2   Isr: 1,2
+        Topic: interview        Partition: 1    Leader: 2       Replicas: 2,1   Isr: 1,2
+```
