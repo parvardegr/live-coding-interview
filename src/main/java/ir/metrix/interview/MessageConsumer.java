@@ -1,5 +1,7 @@
 package ir.metrix.interview;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,19 +25,31 @@ public class MessageConsumer {
 
     private final MessageProcessorService service;
 
-    MessageConsumer(MessageProcessorService service) {
+    private final MeterRegistry meterRegistry;
+    private final Timer messageProcessingTimer;
+
+    MessageConsumer(MessageProcessorService service, MeterRegistry meterRegistry) {
         this.service = service;
+        this.meterRegistry = meterRegistry;
+        this.messageProcessingTimer = Timer.builder("kafka.message.processing.time")
+                .description("Time taken to process messages")
+                .tags("topic", "interview")
+                .register(meterRegistry);
     }
 
-    //TODO: metric for throughput (to show how many message per seconds we can handle)
     @KafkaListener(
             topics = "${topic.name}",
             concurrency = "${partition.count}",
             batch = "true"
     )
     public void consume(List<Message> messages) {
+        // todo: process the instrumentation on another thread
+        meterRegistry.counter("kafka.message.received.batch", "topic", "interview").increment(); // batch
+        meterRegistry.counter("kafka.message.received", "topic", "interview").increment(messages.size()); // message
 
+        Timer.Sample sample = Timer.start(meterRegistry); // start process time
         this.service.processMessages(messages);
+        sample.stop(messageProcessingTimer); // end process time
 
         synchronized (lock) {
             if (processedCount.get() == 0) {
