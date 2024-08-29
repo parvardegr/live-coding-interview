@@ -1,10 +1,8 @@
-version: '3.2'
-
 services:
   # https://github.com/wurstmeister/zookeeper-docker
   zookeeper:
     container_name: zookeeper
-    image: wurstmeister/zookeeper:latest
+    image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
@@ -13,8 +11,19 @@ services:
   # https://hub.docker.com/r/confluentinc/cp-kafka/
   kafka:
     container_name: kafka
-    image: wurstmeister/kafka:2.12-2.2.1
+    image: confluentinc/cp-kafka:latest
     environment:
+      ## -XX:+UseG1GC: G1GC divides application memory into chunks and collect garbage incrementally. (minimise GC pause time, maximise throughput)
+      ## -Xmx2G: maximum amount of memory that the JVM is allowed to allocate for the heap. (for storing objects; adjust with available resource)
+      ## -Xms2G: initial heap size, recommended to be equal to `-Xmx` to avoid dynamic resizing in runtime.
+        ## by setting init != max, JVM spend more time on managing the memory instead of executing app logic. (adjust with available resource)
+      ## -XX:MaxGCPauseMillis=20: each GC pause does not exceed this duration. (can help reduce latency; but increase CPU usage)
+      KAFKA_JVM_PERFORMANCE_OPTS: >-
+        -XX:+UseG1GC
+        -Xmx2G
+        -Xms2G 
+        -XX:MaxGCPauseMillis=20
+      KAFKA_BROKER_ID: 1
       ## the >- used below infers a value which is a string and properly
       ## ignore the multiple lines resulting in one long string:
       ## https://yaml.org/spec/1.2/spec.html
@@ -32,15 +41,57 @@ services:
 
       KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
       KAFKA_LOG4J_LOGGERS: >-
         kafka.controller=INFO,
         kafka.producer.async.DefaultEventHandler=INFO,
         state.change.logger=INFO
-
     ports:
       - 9092:9092
     depends_on:
       - zookeeper
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+
+  # https://hub.docker.com/r/confluentinc/cp-kafka/
+  kafka2:
+    container_name: kafka2
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_BROKER_ID: 2
+      ## the >- used below infers a value which is a string and properly
+      ## ignore the multiple lines resulting in one long string:
+      ## https://yaml.org/spec/1.2/spec.html
+      KAFKA_ADVERTISED_LISTENERS: >-
+        LISTENER_DOCKER_INTERNAL://kafka2:19093, 
+        LISTENER_DOCKER_EXTERNAL://localhost:9093
+
+      KAFKA_LISTENERS: >-
+        LISTENER_DOCKER_INTERNAL://:19093,
+        LISTENER_DOCKER_EXTERNAL://:9093
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: >-
+        LISTENER_DOCKER_INTERNAL:PLAINTEXT,
+        LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+
+      KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+      KAFKA_LOG4J_LOGGERS: >-
+        kafka.controller=INFO,
+        kafka.producer.async.DefaultEventHandler=INFO,
+        state.change.logger=INFO
+    ports:
+      - 9093:9093
+    depends_on:
+      - zookeeper
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
